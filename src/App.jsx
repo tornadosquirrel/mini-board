@@ -28,26 +28,39 @@ function App() {
     setContent("")
   }
 
-  function editPost(id, prevTitle, prevContent) {
-    setPosts(prev =>
-      prev.map(post =>
-        post.id === id
-          ? {
-            ...post,
-            title: title.trim() === "" ? prevTitle : title,
-            content: content.trim() === "" ? prevContent : content
-          }
-          : post
-      )
-    );
-    setTitle("");
-    setContent("")
+  async function editPost(id, prevTitle, prevContent) {
+    const edited = {
+      title: (title.trim() === "" ? prevTitle : title),
+      content: (content.trim() === "" ? prevContent : content)
+    };
+
+    const response = await fetch(`http://localhost:3000/posts/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(edited)
+    });
+
+    if (response.ok) {
+      setPosts(prev =>
+        prev.map(post =>
+          post.id === id ? { id, ...edited } : post
+        )
+      );
+      setTitle("");
+      setContent("")
+    }
   }
 
-  function deletePost(id) {
-    setPosts(prev =>
-      prev.filter(post => post.id !== id)
-    );
+  async function deletePost(id) {
+    const response = await fetch(`http://localhost:3000/posts/${id}`, {
+      method: "DELETE"
+    });
+
+    if (response.ok) {
+      setPosts(prev => prev.filter(post => post.id !== id));
+    }
   }
 
   async function loadPosts() {
